@@ -4,13 +4,17 @@ import 'package:get/get.dart';
 import '../controllers/todo_controller.dart';
 
 class AlertDialogWidget extends StatelessWidget {
-  const AlertDialogWidget({
+   AlertDialogWidget({
     Key? key,
     required GlobalKey<FormState> formKey,
+    required this.updateId,
+    required this.isUpdate,
   })  : _formKey = formKey,
         super(key: key);
 
   final GlobalKey<FormState> _formKey;
+   bool isUpdate = false;
+  final String updateId;
 
   @override
   Widget build(BuildContext context) {
@@ -19,10 +23,18 @@ class AlertDialogWidget extends StatelessWidget {
       content: GetBuilder<TodoController>(builder: (controller) {
         return SizedBox(
           width: MediaQuery.of(context).size.width,
-          height: 250,
+          height: 270,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Text(
+                isUpdate ? 'Update Todo' : 'Add Todo',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
               Expanded(
                 child: Form(
                     key: _formKey,
@@ -89,9 +101,18 @@ class AlertDialogWidget extends StatelessWidget {
                         ElevatedButton(
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
-                              controller.addTodo();
-                              controller.titleController.clear();
-                              controller.descriptionController.clear();
+                              if (isUpdate) {
+                                controller.updateTodoById(
+                                  updateId,
+                                );
+                              } else {
+                                if (_formKey.currentState!.validate()) {
+                                  controller.addTodo();
+                                  controller.titleController.clear();
+                                  controller.descriptionController.clear();
+                                  Get.back();
+                                }
+                              }
                               Get.back();
                             }
                           },
@@ -104,9 +125,9 @@ class AlertDialogWidget extends StatelessWidget {
                                   BorderRadius.all(Radius.circular(10.0)),
                             ),
                           ),
-                          child: const Text(
-                            'Add Todo',
-                            style: TextStyle(fontSize: 16),
+                          child: Text(
+                            isUpdate ? 'Update Todo' : 'Add Todo',
+                            style: const TextStyle(fontSize: 16),
                           ),
                         )
                       ],

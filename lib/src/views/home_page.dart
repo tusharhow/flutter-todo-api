@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_todo_api/src/controllers/todo_controller.dart';
-import 'package:flutter_todo_api/src/models/todo.dart';
 import 'package:get/get.dart';
-
 import '../components/alert_dialog_widget.dart';
-import '../models/add_todo.dart';
 
 class HomePage extends StatelessWidget {
   HomePage({Key? key}) : super(key: key);
@@ -20,7 +17,7 @@ class HomePage extends StatelessWidget {
           builder: (controller) {
             return Column(
               children: [
-                FutureBuilder<List<Items>>(
+                FutureBuilder<List>(
                     future: controller.getAllTodos(),
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
@@ -38,23 +35,48 @@ class HomePage extends StatelessWidget {
                               final todo = snapshot.data![index];
                               return ListTile(
                                 title: Text(
-                                  todo.title,
+                                  todo['title'],
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 18,
                                   ),
                                 ),
                                 subtitle: Text(
-                                  todo.description,
+                                  todo['description'],
                                   style: const TextStyle(
                                     fontSize: 16,
                                   ),
                                 ),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.delete),
-                                  onPressed: () {
-                                    controller.deleteTodoById(todo.sId);
-                                  },
+                                trailing: PopupMenuButton(
+                                  itemBuilder: (context) => [
+                                    PopupMenuItem(
+                                      child: TextButton(
+                                        onPressed: () {
+                                          Get.back();
+                                          showDialog(
+                                              context: context,
+                                              builder: (context) {
+                                                return AlertDialogWidget(
+                                                  formKey: _formKey,
+                                                  isUpdate: true,
+                                                  updateId: todo['_id'],
+                                                );
+                                              });
+                                        },
+                                        child: const Text('Update'),
+                                      ),
+                                    ),
+                                    PopupMenuItem(
+                                      child: TextButton(
+                                        onPressed: () {
+                                          Get.back();
+                                          controller
+                                              .deleteTodoById(todo['_id']);
+                                        },
+                                        child: const Text('Delete'),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               );
                             },
@@ -75,7 +97,11 @@ class HomePage extends StatelessWidget {
           showDialog(
               context: context,
               builder: (context) {
-                return AlertDialogWidget(formKey: _formKey);
+                return AlertDialogWidget(
+                  formKey: _formKey,
+                  isUpdate: false,
+                  updateId: '',
+                );
               });
         },
         child: const Icon(Icons.add),

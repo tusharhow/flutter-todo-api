@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import 'src/views/home_page.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Flutter Demo',
+      title: 'Flutter Todo API',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

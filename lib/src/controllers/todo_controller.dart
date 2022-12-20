@@ -1,19 +1,14 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_todo_api/src/services/network/network_service.dart';
 import 'package:get/get.dart';
-import '../models/add_todo.dart';
-import '../models/todo.dart';
 
 class TodoController extends GetxController {
-  var todos = <Items>[].obs;
+  var todos = [].obs;
 
   @override
   void onInit() {
     getAllTodos();
-
     super.onInit();
   }
 
@@ -21,8 +16,7 @@ class TodoController extends GetxController {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
 
-  var addedTodos = <Data>[].obs;
-  Future addTodo() async {
+  Future<List> addTodo() async {
     final data = {
       "title": titleController.text,
       "description": descriptionController.text,
@@ -32,35 +26,35 @@ class TodoController extends GetxController {
 
     var response = await NetworkService.post('todos', body: body);
     if (response.statusCode == 201) {
-      final map = AddTodo.fromJson(jsonDecode(response.body));
-      final Data todo = Data.fromJson(map.toJson());
-
-      addedTodos.add(todo);
+      final data = jsonDecode(response.body);
+      final addedTodos = data['data'];
+      todos.addAll(addedTodos);
       update();
-      return addedTodos;
+      return todos;
     } else {
       throw Exception('Failed to add todo');
     }
   }
 
-  Future<List<Items>> getAllTodos() async {
+// get all todos
+  Future<List> getAllTodos() async {
     final response = await NetworkService.get('todos');
     if (response.statusCode == 200) {
-      final map = Todo.fromJson(jsonDecode(response.body)).items;
-      final List<Items> todoss =
-          map!.map((e) => Items.fromJson(e.toJson())).toList();
-      todos.assignAll(todoss);
+      final data = jsonDecode(response.body);
+      final todoss = data['items'];
+      todos.addAll(todoss);
+      update();
       return todos;
     } else {
       throw Exception('Failed to load todos');
     }
   }
 
-  // delete a todo by sid
+  // delete a todo
   Future<void> deleteTodoById(String id) async {
     final response = await NetworkService.delete('todos/$id');
     if (response.statusCode == 200) {
-      todos.removeWhere((element) => element.sId == id);
+      todos.removeWhere((element) => element['_id'] == id);
       update();
       ScaffoldMessenger.of(Get.context!).showSnackBar(
         const SnackBar(
@@ -69,6 +63,32 @@ class TodoController extends GetxController {
       );
     } else {
       throw Exception('Failed to delete todo');
+    }
+  }
+
+  // update a todo
+  Future<void> updateTodoById(String id) async {
+    final data = {
+      "title": titleController.text,
+      "description": descriptionController.text,
+      "is_completed": false,
+    };
+    var body = json.encode(data);
+
+    final response = await NetworkService.put('todos/$id', body: body);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final updatedTodo = data['data'];
+      final index = todos.indexWhere((element) => element['_id'] == id);
+      todos[index] = updatedTodo;
+      update();
+      ScaffoldMessenger.of(Get.context!).showSnackBar(
+        const SnackBar(
+          content: Text('Todo updated successfully'),
+        ),
+      );
+    } else {
+      throw Exception('Failed to update todo');
     }
   }
 }
